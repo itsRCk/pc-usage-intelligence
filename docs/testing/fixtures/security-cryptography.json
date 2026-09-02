@@ -1,0 +1,36 @@
+{
+  "fixtureVersion": 1,
+  "purpose": "Security, cryptography, secret-handling, IPC trust and encrypted-sync validation",
+  "cases": [
+    {
+      "id":"SEC-001","scenario":"Local secret protected by Windows user boundary","actions":["generateDevicePrivateKey","protectForUser","attemptDecryptAsDifferentUser"],"expected":{"sameUserCanDecrypt":true,"differentUserCannotDecrypt":true,"secretInPlaintextFile":false},"userFriction":"Security should be invisible during ordinary use; users should not have to manage raw key files."
+    },
+    {
+      "id":"SEC-002","scenario":"OAuth token never enters usage database","actions":["authenticate","persistToken","inspectUsageDatabase","buildSyncObject"],"expected":{"usageDbContainsOAuthToken":false,"syncObjectContainsOAuthToken":false},"userFriction":"Account credentials must never unexpectedly appear in history exports or diagnostics."
+    },
+    {
+      "id":"SEC-003","scenario":"AES-GCM nonce uniqueness","actions":["encrypt10000ObjectsWithSameEpochKey"],"expected":{"duplicateNonceForSameKey":false,"allDecrypt":true},"userFriction":"No direct user interaction; failure is a catastrophic integrity/security defect."
+    },
+    {
+      "id":"SEC-004","scenario":"Authenticated metadata cannot be altered","actions":["encryptObject","changeObjectType","verify"],"expected":{"verificationFails":true,"plaintextAccepted":false},"userFriction":"Tampered cloud data should fail safely without damaging local history."
+    },
+    {
+      "id":"SEC-005","scenario":"Wrong dataset or epoch cannot decrypt object","actions":["encryptInDatasetA","attemptDecryptInDatasetB"],"expected":{"decryptFails":true,"contextBindingEnforced":true},"userFriction":"Cross-account or cross-dataset mistakes must not surface as corrupted user history."
+    },
+    {
+      "id":"SEC-006","scenario":"Recovery secret is not logged","actions":["enterRecoverySecret","simulateCrash","inspectLogsAndDiagnostics"],"expected":{"secretAbsent":true,"encryptedEnvelopeOnly":true},"userFriction":"Recovery should be trustworthy without exposing sensitive material in support artifacts."
+    },
+    {
+      "id":"SEC-007","scenario":"Malicious local IPC client rejected","actions":["openPipeAsUnauthorizedClient","sendValidStatusRequest"],"expected":{"connectionRejected":true,"historyExposed":false},"userFriction":"Users should not see prompts or breakage when a malicious client is simply denied."
+    },
+    {
+      "id":"SEC-008","scenario":"Private-browser identity is blocked at all boundaries","actions":["createPrivateBrowserObservation","persist","aggregate","sync","diagnosticExport"],"expected":{"localDomainPersisted":false,"localTitlePersisted":false,"aggregateDomainPresent":false,"syncContainsPrivateIdentity":false,"diagnosticsContainPrivateIdentity":false},"userFriction":"The privacy promise must survive fallbacks and internal pipelines, not merely the UI."
+    },
+    {
+      "id":"SEC-009","scenario":"Replay of stale remote generation rejected","actions":["acceptGeneration12","receiveGeneration11","verify"],"expected":{"staleStateRejected":true,"localDataUnchanged":true},"userFriction":"A previously valid cloud state should never silently roll back newer history."
+    },
+    {
+      "id":"SEC-010","scenario":"Zero behavioral telemetry","actions":["runTrackerFor24Hours","blockProductNetworkEndpoints","inspectOutboundConnections"],"expected":{"trackingWorksOffline":true,"behavioralTelemetryBytes":0,"unexpectedThirdPartyConnections":0},"userFriction":"Privacy-sensitive users should not need to trust a hidden analytics switch; behavior should match the promise."
+    }
+  ]
+}
