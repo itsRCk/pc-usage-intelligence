@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pcusage://schemas/analytics-query.v1.json",
+  "title": "Analytics Query",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "startUtc", "endUtc"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "startUtc": { "type": "string", "format": "date-time" },
+    "endUtc": { "type": "string", "format": "date-time" },
+    "grain": { "enum": ["event", "minute", "15minute", "hour", "day", "week", "month"] },
+    "applicationIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "domainIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "categoryIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "productivityValues": { "type": "array", "items": { "enum": ["Productive", "Leisure", "Neutral", "Unclassified"] }, "uniqueItems": true },
+    "dimensions": { "type": "array", "items": { "enum": ["Foreground", "Visible", "Idle", "Gap"] }, "uniqueItems": true },
+    "includePageTitles": { "type": "boolean", "default": true },
+    "includeDiagnostics": { "type": "boolean", "default": false }
+  }
+}
