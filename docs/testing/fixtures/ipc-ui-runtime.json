@@ -1,0 +1,46 @@
+{
+  "fixtureVersion": 1,
+  "purpose": "UI to tracking-runtime IPC correctness and resilience",
+  "cases": [
+    {
+      "id":"IPC-001","scenario":"UI connects to running tracker","actions":["connect","requestStatus"],
+      "expected":{"protocolNegotiates":true,"statusReturned":true,"trackingContinues":true},
+      "userFriction":"The dashboard should open quickly even when the tracker was already running."
+    },
+    {
+      "id":"IPC-002","scenario":"Tracker restarts while UI is open","actions":["UIConnected","TrackerStops","TrackerStarts"],
+      "expected":{"UIShowsTransientDisconnectedState":true,"UIReconnectsAutomatically":true,"duplicateTracking":false},
+      "userFriction":"A tracker restart should look like a recoverable status change, not an alarming app failure."
+    },
+    {
+      "id":"IPC-003","scenario":"UI restarts while tracker remains running","actions":["TrackerObserving","UIStops","UIStarts","UIConnects"],
+      "expected":{"trackingGapCreated":false,"trackerStatePreserved":true},
+      "userFriction":"Closing the dashboard must not stop or reset tracking."
+    },
+    {
+      "id":"IPC-004","scenario":"Unsupported protocol version","input":{"uiVersion":99,"trackerSupported":[1,2]},
+      "expected":{"connectionRejectedCleanly":true,"noCrash":true,"userActionableMessage":true},
+      "userFriction":"Version mismatch should explain that an update is required rather than appearing as random loss of tracking."
+    },
+    {
+      "id":"IPC-005","scenario":"Malformed message","input":{"message":"invalid binary/json shape"},
+      "expected":{"messageRejected":true,"trackerRemainsHealthy":true,"connectionCanRecover":true},
+      "userFriction":"A bad UI/client must never be able to destabilize the background tracker."
+    },
+    {
+      "id":"IPC-006","scenario":"Unauthorized local client","actions":["unknownProcessConnects"],
+      "expected":{"clientRejected":true,"dataExposed":false,"trackerContinues":true},
+      "userFriction":"Security failures should not produce confusing desktop prompts or require user intervention when silently rejectable."
+    },
+    {
+      "id":"IPC-007","scenario":"Slow consumer backpressure","actions":["UIStopsReadingStatus","TrackerProducesStatusEvents"],
+      "expected":{"boundedQueue":true,"trackerHotPathNotBlocked":true,"staleStatusMayBeDropped":true},
+      "userFriction":"A frozen dashboard must never slow or stop the tracking engine."
+    },
+    {
+      "id":"IPC-008","scenario":"Large analytics request incorrectly sent over IPC","actions":["requestTimelineForYear"],
+      "expected":{"heavyDatasetNotPushedThroughIPC":true,"readModelUsed":true},
+      "userFriction":"Opening a large history must remain responsive and should not make the tracker appear busy."
+    }
+  ]
+}
