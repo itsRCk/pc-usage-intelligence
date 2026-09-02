@@ -1,0 +1,45 @@
+{
+  "fixtureVersion": 1,
+  "purpose": "Performance budgets, endurance, packaging and release safety",
+  "cases": [
+    {
+      "id":"PERF-001","scenario":"Idle tracker on supported laptop","workload":"No window changes for 10 minutes","expected":{"cpuSustainedPercent":"<1","ramMb":"<150","networkBytes":0,"gpu":"effectively-zero"},"userFriction":"The product should disappear into the background rather than make a low-power laptop feel heavier."
+    },
+    {
+      "id":"PERF-002","scenario":"Typical foreground activity","workload":"Continuous mixed app switching for 30 minutes","expected":{"cpuSustainedPercent":"<2","ramMb":"<150","noHotLoop":true},"userFriction":"Normal use must not produce fan noise, battery drain, or visible lag."
+    },
+    {
+      "id":"PERF-003","scenario":"Rapid window switching stress","workload":"1000 foreground transitions","expected":{"allTransitionsProcessed":true,"unboundedQueue":false,"memoryGrowthMb":"bounded"},"userFriction":"Heavy multitasking should not cause delayed or missing timeline updates."
+    },
+    {
+      "id":"PERF-004","scenario":"Large browser tab workload","workload":"10 browser windows, 100 total tabs, frequent active-tab changes","expected":{"browserAdapterCpuSustainedPercent":"<0.5","nativeMemoryMb":"<50","globalTrackerUnaffected":true},"userFriction":"Browser-heavy users should not experience a noticeably heavier tracker."
+    },
+    {
+      "id":"PERF-005","scenario":"Large history query","workload":"Multiple years of aggregated history plus high-resolution recent data","expected":{"timelineUsesVirtualization":true,"queryDoesNotBlockTracker":true,"interactiveNavigationRemainsResponsive":true},"userFriction":"A long history should remain browsable instead of turning into a frozen screen."
+    },
+    {
+      "id":"PERF-006","scenario":"Sync backlog recovery","workload":"30 days offline then reconnect","expected":{"boundedConcurrency":true,"trackerUnaffected":true,"retryStorm":false,"progressMade":true},"userFriction":"A long-offline laptop should catch up quietly without monopolizing CPU, disk, or network."
+    },
+    {
+      "id":"PERF-007","scenario":"Seven-day endurance","workload":"Normal mixed use for 7 days","expected":{"memoryTrend":"stable","dbGrowth":"within-budget","crashes":0,"unexplainedGaps":0},"userFriction":"The product must remain boring after days of uptime, not degrade gradually."
+    },
+    {
+      "id":"PERF-008","scenario":"Thirty-day endurance release gate","workload":"Normal mixed use for 30 days","expected":{"memoryTrend":"stable","trackingAccuracyMaintained":true,"retentionBehavesAsConfigured":true},"userFriction":"Month-long use is the actual product experience; short benchmarks are insufficient."
+    },
+    {
+      "id":"REL-001","scenario":"Clean install","actions":["install","signInToWindows","waitForRuntime","openUI"],"expected":{"trackerStartsWithoutDashboard":true,"dataDirectoryCreatedSafely":true},"userFriction":"First-run setup should not require understanding services or process architecture."
+    },
+    {
+      "id":"REL-002","scenario":"Upgrade preserves history","actions":["installV1","recordHistory","upgradeV2","openHistory"],"expected":{"historyPreserved":true,"schemaMigratedAtomically":true,"runtimeRestartsSafely":true},"userFriction":"An update should feel routine, not like a risky database operation."
+    },
+    {
+      "id":"REL-003","scenario":"Failed update rollback","actions":["startUpgrade","injectFailure","rollback"],"expected":{"previousVersionLaunchable":true,"historyPreserved":true,"trackerNotLeftMissing":true},"userFriction":"A failed update must not strand the user without tracking."
+    },
+    {
+      "id":"REL-004","scenario":"Uninstall and reinstall","actions":["recordHistory","uninstall","reinstall"],"expected":{"dataRetentionMatchesPolicy":true,"userIsToldWhatWillRemain":true,"oldDataDoesNotBecomeOrphanedSilently":true},"userFriction":"Users should understand whether uninstall removes history before they commit to it."
+    },
+    {
+      "id":"REL-005","scenario":"Microsoft Store versus standalone package parity","actions":["installStoreBuild","installStandaloneBuild"],"expected":{"coreTrackingSemanticsMatch":true,"databaseSchemaCompatible":true},"userFriction":"The install channel should not change what the product records."
+    }
+  ]
+}
