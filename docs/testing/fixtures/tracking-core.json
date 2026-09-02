@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "fixtureVersion": 1,
+  "purpose": "Deterministic tracking-engine correctness fixtures",
+  "cases": [
+    {
+      "id": "TRK-001",
+      "scenario": "Basic foreground transition",
+      "preconditions": ["Tracker observing", "App A and App B exist"],
+      "events": [
+        {"t": "10:00:00", "type": "foreground", "target": "AppA"},
+        {"t": "10:05:00", "type": "foreground", "target": "AppB"},
+        {"t": "10:12:00", "type": "foreground", "target": "AppA"}
+      ],
+      "expected": {
+        "foregroundIntervals": [
+          ["10:00:00", "10:05:00", "AppA"],
+          ["10:05:00", "10:12:00", "AppB"]
+        ],
+        "noOverlap": true,
+        "switchCount": 2
+      },
+      "userFriction": "None expected; this is the baseline users intuitively expect."
+    },
+    {
+      "id": "TRK-002",
+      "scenario": "Duplicate event plus reconciliation",
+      "events": [
+        {"t": "10:00:00", "type": "foreground", "target": "AppA"},
+        {"t": "10:05:00", "type": "foreground", "target": "AppB"},
+        {"t": "10:05:01", "type": "foreground", "target": "AppB"},
+        {"t": "10:05:02", "type": "reconcile", "target": "AppB"}
+      ],
+      "expected": {"transitions": 2, "duplicateStateTransitions": 0, "extraIntervals": 0},
+      "userFriction": "Duplicate internal events must not produce visible duplicate timeline rows or inflated switch counts."
+    },
+    {
+      "id": "TRK-003",
+      "scenario": "Rapid A to B to A switching",
+      "events": [
+        {"t": "10:00:00.000", "type": "foreground", "target": "AppA"},
+        {"t": "10:00:00.450", "type": "foreground", "target": "AppB"},
+        {"t": "10:00:01.100", "type": "foreground", "target": "AppA"}
+      ],
+      "expected": {"allTransitionsPreserved": true, "minimumDurationAppliedOnlyIfSpecifiedByPolicy": true},
+      "userFriction": "Users may notice a tiny transient app in the timeline; hiding it without policy would silently falsify history."
+    },
+    {
+      "id": "TRK-004",
+      "scenario": "Two windows of the same canonical application",
+      "events": [
+        {"t": "11:00:00", "type": "foreground", "target": "VSCodeWindow1", "canonical": "VisualStudioCode"},
+        {"t": "11:10:00", "type": "foreground", "target": "VSCodeWindow2", "canonical": "VisualStudioCode"}
+      ],
+      "expected": {"windowSwitch": 1, "applicationSwitch": 0, "canonicalAggregation": "VisualStudioCode"},
+      "userFriction": "The app should not imply the user switched applications when they only changed windows within one app."
+    },
+    {
+      "id": "TRK-005",
+      "scenario": "Process PID reuse",
+      "events": [
+        {"t": "12:00:00", "type": "processStart", "pid": 4000, "start": "12:00:00", "exe": "app.exe"},
+        {"t": "12:20:00", "type": "processEnd", "pid": 4000, "start": "12:00:00"},
+        {"t": "13:00:00", "type": "processStart", "pid": 4000, "start": "13:00:00", "exe": "other.exe"}
+      ],
+      "expected": {"processInstances": 2, "mergedByPid": false},
+      "userFriction": "Incorrect merging would show impossible long sessions and destroy trust in historical totals."
+    },
+    {
+      "id": "TRK-006",
+      "scenario": "HWND reuse after destruction",
+      "events": [
+        {"t": "14:00:00", "type": "windowCreate", "hwnd": 100, "process": "P1"},
+        {"t": "14:05:00", "type": "windowDestroy", "hwnd": 100},
+        {"t": "15:00:00", "type": "windowCreate", "hwnd": 100, "process": "P2"}
+      ],
+      "expected": {"windowInstances": 2, "mergedLifetime": false},
+      "userFriction": "A reused handle must never make unrelated history appear continuous."
+    },
+    {
+      "id": "TRK-007",
+      "scenario": "Visible window exists while another app is foreground",
+      "events": [
+        {"t": "09:00:00", "type": "visible", "target": "AppA", "monitor": "M1"},
+        {"t": "09:00:00", "type": "visible", "target": "AppB", "monitor": "M2"},
+        {"t": "09:00:00", "type": "foreground", "target": "AppA"},
+        {"t": "09:20:00", "type": "foreground", "target": "AppB"}
+      ],
+      "expected": {
+        "visible": {"AppA": 1200000, "AppB": 1200000},
+        "foreground": {"AppA": 1200000},
+        "visibleCanOverlap": true
+      },
+      "userFriction": "UI must clearly label visible time so users do not mistake it for active-use time."
+    },
+    {
+      "id": "TRK-008",
+      "scenario": "Minimized and cloaked windows",
+      "events": [
+        {"t": "09:00:00", "type": "visibleState", "target": "AppA", "minimized": true, "cloaked": false},
+        {"t": "09:05:00", "type": "visibleState", "target": "AppB", "minimized": false, "cloaked": true}
+      ],
+      "expected": {"visibleCandidates": [], "foregroundUnaffectedByVisibility": true},
+      "userFriction": "Background/minimized apps should not quietly inflate visible-time charts."
+    },
+    {
+      "id": "TRK-009",
+      "scenario": "Window title changes without application change",
+      "events": [
+        {"t": "10:00:00", "type": "title", "window": "W1", "value": "Project A"},
+        {"t": "10:03:00", "type": "title", "window": "W1", "value": "Project B"}
+      ],
+      "expected": {"foregroundIntervalSplitRequired": false, "titleObservationSplitAllowed": true},
+      "userFriction": "Timeline should gain detail without making a title change look like an app switch."
+    },
+    {
+      "id": "TRK-010",
+      "scenario": "Multiple monitors and topology change",
+      "events": [
+        {"t": "10:00:00", "type": "displayTopology", "monitors": ["M1", "M2"]},
+        {"t": "10:10:00", "type": "windowMove", "window": "W1", "monitor": "M2"},
+        {"t": "10:20:00", "type": "displayTopology", "monitors": ["M1"]}
+      ],
+      "expected": {"noTimestampCorruption": true, "topologyChangeRecorded": true},
+      "userFriction": "Disconnecting a monitor should not create mysterious missing time or reset application history."
+    }
+  ]
+}
