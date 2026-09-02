@@ -1,0 +1,36 @@
+{
+  "fixtureVersion": 1,
+  "purpose": "Accessibility, visual-state, search/navigation, and data-quality presentation cases",
+  "cases": [
+    {
+      "id":"UI-001","scenario":"Reduced motion enabled","actions":["enableReducedMotion","openTimeline","zoomTimeline"],"expected":{"essentialStateChangesStillVisible":true,"nonessentialMotionReduced":true},"userFriction":"Users who are sensitive to motion must still understand timeline transitions without animation-dependent meaning."
+    },
+    {
+      "id":"UI-002","scenario":"Keyboard-only timeline navigation","actions":["focusTimeline","movePeriod","zoom","selectInterval","openDetails"],"expected":{"allCoreActionsReachableWithoutPointer":true,"focusVisible":true},"userFriction":"Keyboard users should not be locked out of the product's primary history exploration surface."
+    },
+    {
+      "id":"UI-003","scenario":"Screen-reader alternative for dense chart","actions":["openUsageChart","inspectAccessibleRepresentation"],"expected":{"equivalentSummaryAvailable":true,"labelsMeaningful":true,"timeRangeAnnounced":true},"userFriction":"Dense visualizations need a meaningful non-visual interpretation rather than an empty accessibility tree."
+    },
+    {
+      "id":"UI-004","scenario":"Tracking gap visually distinguishable from zero activity","input":{"knownGap":"10:00-11:00","zeroActivity":"11:00-12:00"},"expected":{"statesVisuallyDistinct":true,"legendExplainsDifference":true},"userFriction":"Users should never need to guess whether blank means no usage or missing data."
+    },
+    {
+      "id":"UI-005","scenario":"Very narrow timeline interval","input":{"interval":"10:00:00-10:00:01"},"expected":{"selectableAtDetailZoom":true,"notVisuallyMisleading":true},"userFriction":"High-resolution events should remain inspectable without becoming impossible to click or understand."
+    },
+    {
+      "id":"UI-006","scenario":"Search finds renamed application","input":{"stableApplicationId":"app-1","oldName":"Editor","newName":"My IDE","query":"My IDE"},"expected":{"findsEntity":true,"stableHistoryContinues":true},"userFriction":"Renaming should not orphan historical usage or make search feel inconsistent."
+    },
+    {
+      "id":"UI-007","scenario":"Search finds historical page title only when title collection is enabled","input":{"titlesEnabled":false,"query":"Sensitive Page"},"expected":{"titleNotSearchable":true,"domainMayRemainSearchable":true},"userFriction":"Privacy controls should affect search predictably as well as storage."
+    },
+    {
+      "id":"UI-008","scenario":"Current day contains only gaps","input":{"date":"2026-09-02","gapHours":8,"trackedHours":0},"expected":{"notPresentedAsZeroUsage":true,"trackingUnavailableExplained":true},"userFriction":"The user should understand the tracker failed rather than conclude they used nothing."
+    },
+    {
+      "id":"UI-009","scenario":"Analytics during partial day","input":{"currentDayTrackedHours":2,"currentDayGapHours":5},"expected":{"comparisonQualifiesIncompletePeriod":true,"partialPeriodIsLabelled":true},"userFriction":"Comparing a partial day to a full day without context can make perfectly normal numbers look alarming."
+    },
+    {
+      "id":"UI-010","scenario":"Data processing backlog after recovery","actions":["trackerRecovers","analyticsRebuildPending","openDashboard"],"expected":{"staleDataMarkedAsProcessing":true,"trackerStatusStillHealthy":true},"userFriction":"Analytics may temporarily lag while tracking is healthy; users should see the distinction instead of assuming data loss."
+    }
+  ]
+}
