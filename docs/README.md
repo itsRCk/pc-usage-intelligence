@@ -18,11 +18,11 @@ This directory contains the authoritative product, UX, architecture, security, d
 
 ### Security & sync
 9. `09-privacy-data-governance.md` — Privacy & Data Governance
-10. `10-security-cryptography.md` — Security & Cryptography
-11. `11-google-drive-sync.md` — Google Drive Sync
+10. `10-security-cryptography-architecture.md` — Security & Cryptography
+11. `11-google-drive-sync-specification.md` — Google Drive Sync
 
 ### Execution
-12. `12-performance-qa-release.md` — Performance, QA & Release Engineering
+12. `12-performance-qa-release-engineering.md` — Performance, QA & Release Engineering
 
 ## Supporting artifacts
 
@@ -31,6 +31,22 @@ This directory contains the authoritative product, UX, architecture, security, d
 - `testing/` — Test matrices and benchmark plans
 - `roadmap/` — Milestones and implementation planning
 
+## Schema catalog
+
+The machine-readable schema set is maintained under `schemas/` and currently includes:
+
+- `domain-model.md` — canonical entities, IDs, enums, time, provenance, and invariants.
+- `sqlite-schema.sql` — logical SQLite schema baseline and indexes.
+- `tracking-observation.schema.json` — normalized Windows/tracker observation contract.
+- `browser-events.schema.json` — browser adapter event contract.
+- `ipc-messages.schema.json` — versioned UI ↔ tracker IPC contract.
+- `classification-rule.schema.json` — deterministic/user classification rules.
+- `analytics-query.schema.json` — time-range and analytics query contract.
+- `sync-envelope.schema.json` — encrypted sync object envelope.
+- `sync-mutations.schema.json` — logical sync mutations and deletion/tombstone semantics.
+
 ## Authority
 
 Requirements flow downward through the document order. Later technical documents must not silently change product scope established by the PRD and scope specification. Any material architectural decision that changes an established constraint should receive an ADR.
+
+Schemas translate the authoritative specifications into implementation contracts; they do not independently redefine product semantics.
