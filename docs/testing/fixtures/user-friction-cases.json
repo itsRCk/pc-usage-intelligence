@@ -1,0 +1,60 @@
+{
+  "fixtureVersion": 1,
+  "purpose": "User-centered edge cases where technically correct behavior can still create confusion, distrust, privacy anxiety, or support burden",
+  "cases": [
+    {
+      "id":"UX-001","scenario":"User sees a tracking gap after tracker crash","trigger":"Tracker restarts after process termination","expected":{"gapClearlyLabeled":true,"blameLanguage":false,"exactCauseShownWhenKnown":true},"badOutcome":"User interprets missing history as personal inactivity or assumes the app is unreliable without explanation.","frictionMitigation":"Use neutral wording such as tracking unavailable; link to a concise diagnostic explanation."
+    },
+    {
+      "id":"UX-002","scenario":"User sees different foreground and visible totals","trigger":"Two apps are visible while one is foreground","expected":{"metricsClearlySeparated":true},"badOutcome":"User assumes one metric is incorrect because totals differ.","frictionMitigation":"Explain foreground as active-use metric and visible as window-presence metric at first encounter."
+    },
+    {
+      "id":"UX-003","scenario":"User manually changes an app category","trigger":"Open app classification editor","expected":{"overrideImmediate":true,"undoEasy":true,"historicalImpactExplained":true},"badOutcome":"User thinks only future data changed or worries that raw history was rewritten.","frictionMitigation":"Show effective classification and a lightweight explanation that raw observations remain intact."
+    },
+    {
+      "id":"UX-004","scenario":"Unknown application appears","trigger":"Resolver cannot identify executable confidently","expected":{"appStillTracked":true,"fallbackCategory":"Other","confidenceVisibleWhenUseful":true},"badOutcome":"User thinks tracking is broken.","frictionMitigation":"Present unknown identity as a normal unresolved state with an optional correction action."
+    },
+    {
+      "id":"UX-005","scenario":"Private browser usage is missing from domain history","trigger":"User opens an incognito/private tab","expected":{"browserAppTimePresent":true,"domainTitleAbsent":true,"privacyExplanationAvailable":true},"badOutcome":"User assumes data was lost or browser tracking is inconsistent.","frictionMitigation":"Explain once that private browsing intentionally suppresses identifiable browser detail."
+    },
+    {
+      "id":"UX-006","scenario":"Browser permission is denied","trigger":"User declines extension/tab permission","expected":{"basicBrowserAppTrackingContinues":true,"domainFeatureMarkedUnavailable":true,"noRepeatedPrompts":true},"badOutcome":"Repeated permission prompts become annoying and users disable the entire product.","frictionMitigation":"Use a quiet degraded state and one clear route to enable the missing capability later."
+    },
+    {
+      "id":"UX-007","scenario":"Google sign-in mistaken for sync activation","trigger":"User authenticates Google account","expected":{"syncRemainsOffUntilExplicitlyEnabled":true},"badOutcome":"User believes private usage history was uploaded unexpectedly.","frictionMitigation":"Keep signed-in and sync-enabled as separate states in UI and copy."
+    },
+    {
+      "id":"UX-008","scenario":"Sync is offline for several days","trigger":"Laptop remains offline with sync enabled","expected":{"trackingUnaffected":true,"backlogStateVisibleSubtly":true,"noUrgentAlarm":true},"badOutcome":"User thinks the app is malfunctioning because cloud status is stale.","frictionMitigation":"Treat sync as secondary health information; local history remains first-class."
+    },
+    {
+      "id":"UX-009","scenario":"New PC migration finds existing dataset","trigger":"User signs in and explicitly enables sync on a new device","expected":{"migrationIntentExplained":true,"duplicateRiskResolved":true,"deviceOriginShown":true},"badOutcome":"User fears duplicate history or accidental merge of unrelated Windows profiles.","frictionMitigation":"Preview the dataset/device being joined before merge."
+    },
+    {
+      "id":"UX-010","scenario":"User deletes a time range","trigger":"Delete selected day","expected":{"scopePreview":true,"neighboringDataProtected":true,"syncConsequenceExplainedWhenEnabled":true,"undoOrRecoveryPolicyClear":true},"badOutcome":"User worries that deletion might affect adjacent dates or another device.","frictionMitigation":"Show exact date/time range and whether deletion will propagate."
+    },
+    {
+      "id":"UX-011","scenario":"System clock changes and timeline appears reordered","trigger":"User changes Windows clock","expected":{"historicalInstantsRemainConsistent":true,"clockDiscontinuityNoted":true},"badOutcome":"User sees apparent duplicate or backward-moving time and assumes corrupted data.","frictionMitigation":"Provide a small data-quality marker rather than rewriting history to hide the discontinuity."
+    },
+    {
+      "id":"UX-012","scenario":"Monitor disconnect creates topology transition","trigger":"Laptop unplugged from external display","expected":{"trackingContinues":true,"displayChangeDoesNotCreateFalseAppSwitches":true},"badOutcome":"User sees odd visual transitions or missing monitor context.","frictionMitigation":"Keep monitor metadata secondary and avoid surfacing topology churn unless it explains a discrepancy."
+    },
+    {
+      "id":"UX-013","scenario":"Long title contains sensitive text","trigger":"Window title includes document/chat content","expected":{"titleStoredOnlyUnderSetting":true,"sizeBounded":true,"notLogged":true},"badOutcome":"User becomes uncomfortable after seeing sensitive text exposed too prominently.","frictionMitigation":"Make title collection visibly independent and allow granular deletion."
+    },
+    {
+      "id":"UX-014","scenario":"Large history loads slowly","trigger":"Open multi-year timeline","expected":{"trackerUnaffected":true,"progressiveLoading":true,"virtualizedRendering":true},"badOutcome":"User assumes the whole application is heavy or that tracking stopped.","frictionMitigation":"Separate UI loading state from tracker state and avoid blocking the shell."
+    },
+    {
+      "id":"UX-015","scenario":"Sync conflict requires deterministic resolution","trigger":"Same classification changed on two devices","expected":{"rawHistorySafe":true,"resolutionExplainable":true,"userCanCorrect":true},"badOutcome":"User cannot tell why a label changed and loses confidence in the product.","frictionMitigation":"Show which classification is effective and preserve edit history/provenance."
+    },
+    {
+      "id":"UX-016","scenario":"User opens dashboard immediately after install","trigger":"No meaningful history exists","expected":{"emptyStateHelpful":true,"trackingStatusClear":true,"noFakeMetrics":true},"badOutcome":"Dashboard looks broken or empty without telling user why.","frictionMitigation":"Explain that history accumulates in the background and show current tracking status without inventing values."
+    },
+    {
+      "id":"UX-017","scenario":"No data because user was logged out/locked","trigger":"Open historical day containing known system boundary","expected":{"systemStateDistinguishedFromNoUsage":true},"badOutcome":"User interprets absence as zero computer use.","frictionMitigation":"Use distinct availability/gap treatment from genuine zero-activity periods."
+    },
+    {
+      "id":"UX-018","scenario":"Rare adapter failure creates browser detail gap","trigger":"Browser extension bridge unavailable for 20 minutes","expected":{"browserGapSeparateFromGlobalGap":true,"appUsageStillPresent":true},"badOutcome":"User thinks all tracking failed because website detail vanished.","frictionMitigation":"State exactly which layer was unavailable."
+    }
+  ]
+}
