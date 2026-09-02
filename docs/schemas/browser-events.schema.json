@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pcusage://schemas/browser-events.v1.json",
+  "title": "Browser Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "eventId", "browserType", "eventType", "occurredAtUtc", "privateMode"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "eventId": { "$ref": "#/$defs/id" },
+    "browserType": { "enum": ["Chrome", "Edge", "Firefox", "Brave", "Arc", "Unknown"] },
+    "eventType": { "enum": ["BrowserStarted", "BrowserStopped", "WindowCreated", "WindowClosed", "WindowFocused", "WindowUnfocused", "TabCreated", "TabRemoved", "TabActivated", "TabUpdated", "TabMoved", "TabAttached", "TabDetached", "ProfileChanged", "CapabilityChanged", "BridgeConnected", "BridgeDisconnected"] },
+    "occurredAtUtc": { "type": "string", "format": "date-time" },
+    "browserInstanceId": { "$ref": "#/$defs/id" },
+    "browserWindowId": { "$ref": "#/$defs/id" },
+    "browserTabInstanceId": { "$ref": "#/$defs/id" },
+    "browserNativeWindowId": { "type": ["string", "null"], "maxLength": 256 },
+    "browserNativeTabId": { "type": ["string", "null"], "maxLength": 256 },
+    "windowInstanceId": { "$ref": "#/$defs/id" },
+    "profileKey": { "type": ["string", "null"], "maxLength": 1024 },
+    "privateMode": { "enum": ["Public", "Private", "Unknown", "NotApplicable"] },
+    "domain": { "type": ["string", "null"], "maxLength": 1024 },
+    "pageTitle": { "type": ["string", "null"], "maxLength": 4096 },
+    "navigationState": { "enum": ["Unchanged", "Navigated", "Loading", "Complete", "Error", "Unknown", "NotApplicable"] },
+    "source": { "enum": ["WebExtension", "NativeBridge", "Reconciliation", "Recovery", "SyntheticTest"] }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9._:-]+$" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "privateMode": { "enum": ["Private", "Unknown"] } } },
+      "then": {
+        "properties": {
+          "domain": { "type": "null" },
+          "pageTitle": { "type": "null" }
+        }
+      }
+    }
+  ]
+}
