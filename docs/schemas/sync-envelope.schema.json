@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pcusage://schemas/sync-envelope.v1.json",
+  "title": "Encrypted Sync Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["formatVersion", "cryptoSuite", "objectId", "datasetId", "epochId", "objectType", "schemaVersion", "createdAtUtc", "nonce", "ciphertext", "authenticationTag"],
+  "properties": {
+    "formatVersion": { "const": 1 },
+    "cryptoSuite": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "objectId": { "$ref": "#/$defs/id" },
+    "datasetId": { "$ref": "#/$defs/id" },
+    "epochId": { "$ref": "#/$defs/id" },
+    "objectType": { "enum": ["Manifest", "MetadataSnapshot", "UsageShard", "ClassificationShard", "BrowserShard", "TombstoneShard", "ProtocolMetadata"] },
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "logicalGeneration": { "type": "integer", "minimum": 0 },
+    "producerDeviceId": { "$ref": "#/$defs/id" },
+    "createdAtUtc": { "type": "string", "format": "date-time" },
+    "plaintextLength": { "type": "integer", "minimum": 0 },
+    "nonce": { "type": "string", "contentEncoding": "base64" },
+    "ciphertext": { "type": "string", "contentEncoding": "base64" },
+    "authenticationTag": { "type": "string", "contentEncoding": "base64" }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9._:-]+$" }
+  }
+}
