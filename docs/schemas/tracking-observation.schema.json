@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pcusage://schemas/tracking-observation.v1.json",
+  "title": "Tracking Observation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "observationId", "observedAtUtc", "monotonicTicks", "source", "lifecycleState"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "observationId": { "$ref": "#/$defs/id" },
+    "runtimeSessionId": { "$ref": "#/$defs/id" },
+    "deviceId": { "$ref": "#/$defs/id" },
+    "observedAtUtc": { "type": "string", "format": "date-time" },
+    "monotonicTicks": { "type": "integer", "minimum": 0 },
+    "source": {
+      "enum": ["ForegroundEvent", "ForegroundReconciliation", "WindowEvent", "WindowReconciliation", "LifecycleEvent", "BrowserEvent", "BrowserReconciliation", "Recovery", "SyntheticTest"]
+    },
+    "sourceSequence": { "type": ["integer", "null"], "minimum": 0 },
+    "windowsSessionId": { "type": ["integer", "null"], "minimum": 0 },
+    "hwndValue": { "type": ["integer", "null"], "minimum": 0 },
+    "processId": { "type": ["integer", "null"], "minimum": 0 },
+    "processStartAtUtc": { "type": ["string", "null"], "format": "date-time" },
+    "executablePath": { "type": ["string", "null"], "maxLength": 4096 },
+    "executableName": { "type": ["string", "null"], "maxLength": 512 },
+    "packageIdentity": { "type": ["string", "null"], "maxLength": 1024 },
+    "windowTitle": { "type": ["string", "null"], "maxLength": 4096 },
+    "isVisible": { "type": ["boolean", "null"] },
+    "isMinimized": { "type": ["boolean", "null"] },
+    "isCloaked": { "type": ["boolean", "null"] },
+    "monitorKey": { "type": ["string", "null"], "maxLength": 512 },
+    "foregroundState": { "type": ["boolean", "null"] },
+    "idleState": { "enum": ["Active", "Idle", "Unknown"] },
+    "lifecycleState": {
+      "enum": ["Observable", "Locked", "Sleeping", "SignedOut", "StorageUnavailable", "Recovering", "Unknown"]
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9._:-]+$" }
+  }
+}
