@@ -1,0 +1,31 @@
+# Build outputs
+bin/
+obj/
+artifacts/
+
+# IDE / tooling
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Test / coverage
+TestResults/
+coverage/
+
+# Local databases and runtime data
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Local secrets / credentials
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
