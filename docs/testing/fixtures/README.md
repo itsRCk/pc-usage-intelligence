@@ -2,7 +2,7 @@
 
 This directory contains deterministic fixtures used to validate PC Usage Intelligence across tracking, browser acquisition, privacy, classification, analytics, storage, synchronization, lifecycle recovery, performance, release safety, accessibility, and user-facing edge cases.
 
-The suite currently contains **97 named scenarios** across nine fixture families.
+The suite currently contains **126 named scenarios** across ten executable fixture families.
 
 ## Fixture contract
 
@@ -34,7 +34,7 @@ Fixtures are deterministic and must not depend on the wall clock, live browser s
 | `security-cryptography.json` | Local secret boundaries, OAuth isolation, nonce safety, authenticated envelopes, replay, privacy, telemetry |
 | `performance-release.json` | CPU/RAM/network budgets, large histories, browser load, endurance, install/update/rollback |
 | `accessibility-ui-data-quality.json` | Reduced motion, keyboard, screen readers, semantic zoom, search, gaps, partial data, processing state |
-| `user-friction-cases.json` | Real-world confusion, distrust, privacy anxiety, support burden, destructive-action risk |
+| `user-friction-cases.json` | Edge cases that create confusion, distrust, privacy anxiety, support burden, or destructive-action risk |
 
 ## Cross-cutting requirements
 
