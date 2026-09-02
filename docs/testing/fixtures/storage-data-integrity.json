@@ -1,0 +1,56 @@
+{
+  "fixtureVersion": 1,
+  "purpose": "SQLite integrity, crash recovery, migration, retention, export and deletion",
+  "cases": [
+    {
+      "id":"DB-001","scenario":"Batch transaction rollback","actions":["begin","write observation A","write observation B","force failure","rollback"],
+      "expected":{"AExists":false,"BExists":false,"partialTransactionVisible":false},
+      "userFriction":"A transient database failure must not leave half-created timeline events."
+    },
+    {
+      "id":"DB-002","scenario":"Crash after commit","actions":["commit batch","terminate process before checkpoint update","restart"],
+      "expected":{"committedDataSurvives":true,"duplicateOnReplay":false},
+      "userFriction":"A tracker crash immediately after saving data must not duplicate history on restart."
+    },
+    {
+      "id":"DB-003","scenario":"Crash during transaction","actions":["begin transaction","write several rows","terminate process","reopen database"],
+      "expected":{"databaseRecoverable":true,"uncommittedRowsAbsent":true,"integrityCheckPasses":true},
+      "userFriction":"The app should restart normally rather than demanding database repair after an ordinary crash."
+    },
+    {
+      "id":"DB-004","scenario":"Schema migration success","input":{"fromVersion":1,"toVersion":2},
+      "expected":{"allSupportedDataPreserved":true,"migrationAtomic":true,"rollbackOnFailure":true},
+      "userFriction":"Updating the app must never quietly reset a user's history."
+    },
+    {
+      "id":"DB-005","scenario":"Schema migration failure","actions":["start migration","force migration error"],
+      "expected":{"oldSchemaStillUsable":true,"partialNewSchemaNotExposed":true},
+      "userFriction":"A broken update should fail safely rather than leaving the app unusable."
+    },
+    {
+      "id":"DB-006","scenario":"Retention compaction preserves analytics","input":{"rawDays":120,"retentionRawDays":90},
+      "expected":{"rawOlderThan90DaysRemoved":true,"dailyAggregatesRetained":true,"reportedLongTermTotalsStable":true},
+      "userFriction":"Retention should reduce detail without making historical totals unexpectedly disappear."
+    },
+    {
+      "id":"DB-007","scenario":"Delete selected range","input":{"deleteRange":["2026-08-10T00:00:00Z","2026-08-11T00:00:00Z"]},
+      "expected":{"matchingRawAndDerivedDataRemovedPerPolicy":true,"neighboringDayUntouched":true,"aggregatesRebuilt":true,"deletionIdempotent":true},
+      "userFriction":"Deleting one day's data should not accidentally erase adjacent days."
+    },
+    {
+      "id":"DB-008","scenario":"Delete page titles only","input":{"deleteTitles":true,"keepDomains":true,"keepAppUsage":true},
+      "expected":{"titlesRemoved":true,"domainsRetained":true,"appIntervalsRetained":true},
+      "userFriction":"Users should have a meaningful granular privacy control rather than all-or-nothing deletion."
+    },
+    {
+      "id":"DB-009","scenario":"Corrupt database detected","actions":["inject corruption","open database"],
+      "expected":{"corruptionDetected":true,"silentOverwrite":false,"recoveryMode":true,"diagnosticContainsNoSensitiveHistory":true},
+      "userFriction":"The product should clearly say history needs recovery instead of showing silently incorrect totals."
+    },
+    {
+      "id":"DB-010","scenario":"Export exact selected range","input":{"range":["09:00","12:00"],"formats":["CSV","JSON"]},
+      "expected":{"onlyRangeExported":true,"exportMetadataStatesCoverage":true,"privateBrowserDetailsAbsent":true},
+      "userFriction":"An export should contain exactly what the user selected and explain what was excluded."
+    }
+  ]
+}
