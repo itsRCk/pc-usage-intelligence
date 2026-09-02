@@ -1,0 +1,81 @@
+{
+  "fixtureVersion": 1,
+  "purpose": "Encrypted sync, multi-device convergence, retries, deletion, rollback and recovery",
+  "cases": [
+    {
+      "id":"SYNC-001","scenario":"Offline-first tracking while sync unavailable","events":["networkDown","trackAppA","networkStillDown","trackAppB"],
+      "expected":{"trackingContinues":true,"localHistoryComplete":true,"outboxAccumulates":true},
+      "userFriction":"A network outage must be invisible to tracking and should not make the user lose history."
+    },
+    {
+      "id":"SYNC-002","scenario":"Upload interrupted after remote acceptance","events":["encryptObject","uploadAccepted","killBeforeAck","restartSync"],
+      "expected":{"sameObjectIdentityReused":true,"duplicateLogicalMutation":false,"eventuallyCommitted":true},
+      "userFriction":"Retrying after a flaky network must not create duplicated days or inflated totals."
+    },
+    {
+      "id":"SYNC-003","scenario":"Remote object tampered","events":["downloadObject","modifyCiphertext","verify"],
+      "expected":{"tamperDetected":true,"objectRejected":true,"localSourceOfTruthUntouched":true},
+      "userFriction":"A corrupt cloud copy should never silently damage the local history."
+    },
+    {
+      "id":"SYNC-004","scenario":"Concurrent device appends","input":{"deviceA":["A","B"],"deviceB":["C","D"]},
+      "expected":{"mergedSet":["A","B","C","D"],"convergence":true},
+      "userFriction":"Using two PCs must feel like one history, not whichever device synced last."
+    },
+    {
+      "id":"SYNC-005","scenario":"Same mutation delivered twice","input":{"mutationId":"m-1","deliveryCount":2},
+      "expected":{"appliedCount":1,"idempotent":true},
+      "userFriction":"Repeated sync should never visibly duplicate history."
+    },
+    {
+      "id":"SYNC-006","scenario":"User classification conflict","input":{"deviceA":{"app":"X","category":"Development"},"deviceB":{"app":"X","category":"Education"}},
+      "expected":{"silentOverwrite":false,"conflictIsDeterministic":true,"rawUsagePreserved":true},
+      "userFriction":"Conflicting edits should never make a user's previous correction mysteriously disappear."
+    },
+    {
+      "id":"SYNC-007","scenario":"Delete range races with stale device","events":["deviceADeletesRange","deviceBUploadsOlderRange","reconcile"],
+      "expected":{"deletedRangeNotResurrected":true,"tombstoneWins":true},
+      "userFriction":"Deleting history must remain deleted even when an offline laptop comes back later."
+    },
+    {
+      "id":"SYNC-008","scenario":"Delete all races with stale device","events":["deviceADeleteAll","deviceBOffline","deviceBReconnectsWithOldHistory","reconcile"],
+      "expected":{"oldHistoryNotResurrected":true,"datasetGenerationReset":true},
+      "userFriction":"A deliberate full reset must not be undone by a previously offline device."
+    },
+    {
+      "id":"SYNC-009","scenario":"Device revocation","events":["deviceBRevoked","deviceBSendsMutation","deviceAReconciles"],
+      "expected":{"revokedMutationRejected":true,"localDeviceBHistoryPreserved":true},
+      "userFriction":"Removing a device should stop future cloud participation without deleting that device's local copy unexpectedly."
+    },
+    {
+      "id":"SYNC-010","scenario":"OAuth account connected but sync disabled","events":["googleSignIn","syncOff","runTracking"],
+      "expected":{"noUsageUpload":true,"localTrackingComplete":true},
+      "userFriction":"Signing in must not surprise users by silently enabling usage-history upload."
+    },
+    {
+      "id":"SYNC-011","scenario":"Key epoch rotation","events":["encryptWithEpoch1","rotateToEpoch2","encryptNewObject","decryptOldAndNew"],
+      "expected":{"oldObjectsReadable":true,"newObjectsUseEpoch2":true,"crossContextKeyReuse":false},
+      "userFriction":"Security improvements must not make older history suddenly disappear."
+    },
+    {
+      "id":"SYNC-012","scenario":"New device migration","events":["newInstall","authenticate","explicitlyEnableSync","recoverKeys","mergeHistory"],
+      "expected":{"oneLogicalDataset":true,"deviceProvenancePreserved":true,"duplicateEventsRemoved":true},
+      "userFriction":"Moving to a new PC should feel like continuing history, not starting over."
+    },
+    {
+      "id":"SYNC-013","scenario":"Google Drive permission revoked","events":["syncEnabled","drivePermissionRevoked","syncAttempt"],
+      "expected":{"localTrackingContinues":true,"syncPaused":true,"actionableUiState":true},
+      "userFriction":"Drive permission problems should be contained to sync and clearly explained."
+    },
+    {
+      "id":"SYNC-014","scenario":"Remote manifest rollback attempt","events":["acceptGeneration10","receiveGeneration8","validate"],
+      "expected":{"rollbackRejected":true,"localGeneration10Preserved":true},
+      "userFriction":"Older cloud state must never silently roll the user's history backward."
+    },
+    {
+      "id":"SYNC-015","scenario":"Private browser data never enters sync","events":["privateTabObserved","buildSyncShard"],
+      "expected":{"privateDomainAbsent":true,"privateTitleAbsent":true,"privateIdentityNotReconstructed":true},
+      "userFriction":"Cloud encryption is not an excuse to weaken the local private-browsing guarantee."
+    }
+  ]
+}
