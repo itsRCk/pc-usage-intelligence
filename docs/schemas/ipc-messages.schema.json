@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pcusage://schemas/ipc-messages.v1.json",
+  "title": "Tracking Runtime IPC Message",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocolVersion", "messageId", "messageType", "timestampUtc", "payload"],
+  "properties": {
+    "protocolVersion": { "const": 1 },
+    "messageId": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "correlationId": { "type": ["string", "null"], "maxLength": 128 },
+    "messageType": {
+      "enum": [
+        "Hello",
+        "HelloAck",
+        "TrackerStatusRequest",
+        "TrackerStatusResponse",
+        "HealthChanged",
+        "GetCurrentObservation",
+        "CurrentObservationResponse",
+        "ConfigurationChanged",
+        "RequestReconciliation",
+        "RequestGracefulShutdown",
+        "Ping",
+        "Pong",
+        "Error"
+      ]
+    },
+    "timestampUtc": { "type": "string", "format": "date-time" },
+    "payload": { "type": "object" }
+  },
+  "$defs": {
+    "empty": { "type": "object", "additionalProperties": false },
+    "trackerStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtimeState", "availabilityState"],
+      "properties": {
+        "runtimeState": { "enum": ["Starting", "Observing", "Shutdown", "Stopped"] },
+        "availabilityState": { "enum": ["Observable", "Locked", "Sleeping", "SignedOut", "StorageUnavailable", "Recovering", "Unknown"] },
+        "runtimeSessionId": { "type": ["string", "null"], "maxLength": 128 },
+        "startedAtUtc": { "type": ["string", "null"], "format": "date-time" },
+        "lastObservationAtUtc": { "type": ["string", "null"], "format": "date-time" },
+        "lastPersistenceAtUtc": { "type": ["string", "null"], "format": "date-time" },
+        "bufferedItemCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": { "type": "string", "maxLength": 128 },
+        "message": { "type": "string", "maxLength": 2048 },
+        "retryable": { "type": "boolean" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "messageType": { "const": "TrackerStatusResponse" } } },
+      "then": { "properties": { "payload": { "$ref": "#/$defs/trackerStatus" } } }
+    },
+    {
+      "if": { "properties": { "messageType": { "const": "Ping" } } },
+      "then": { "properties": { "payload": { "$ref": "#/$defs/empty" } } }
+    },
+    {
+      "if": { "properties": { "messageType": { "const": "Pong" } } },
+      "then": { "properties": { "payload": { "$ref": "#/$defs/empty" } } }
+    },
+    {
+      "if": { "properties": { "messageType": { "const": "Error" } } },
+      "then": { "properties": { "payload": { "$ref": "#/$defs/error" } } }
+    }
+  ]
+}
