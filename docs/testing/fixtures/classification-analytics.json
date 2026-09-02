@@ -1,0 +1,71 @@
+{
+  "fixtureVersion": 1,
+  "purpose": "Classification, historical correction, aggregation, timeline and report semantics",
+  "cases": [
+    {
+      "id":"CLS-001","scenario":"Deterministic system classification","input":{"application":"Visual Studio Code","ruleVersion":1},
+      "expected":{"category":"Development","confidenceRange":[0,1],"source":"System","deterministic":true},
+      "userFriction":"The same app should not randomly change category between launches."
+    },
+    {
+      "id":"CLS-002","scenario":"User override beats system rule","input":{"system":{"application":"Game","category":"Gaming"},"user":{"application":"Game","category":"Development"}},
+      "expected":{"effectiveCategory":"Development","source":"UserOverride","survivesRuleUpdate":true},
+      "userFriction":"A correction made by the user must remain theirs unless they remove it."
+    },
+    {
+      "id":"CLS-003","scenario":"Removing an override returns to current system rule","input":{"systemCategory":"Education","existingOverride":"Productivity"},
+      "expected":{"effectiveCategory":"Education","overrideDeleted":true},
+      "userFriction":"Undoing a correction should have an obvious, reversible effect."
+    },
+    {
+      "id":"CLS-004","scenario":"Retroactive classification correction","input":{"history":[{"t":"09:00","app":"AppA"},{"t":"10:00","app":"AppA"}],"oldCategory":"Other","newCategory":"Development"},
+      "expected":{"rawObservationsChanged":false,"historicalAnalyticsCanRebuild":true,"newReportsReflectCorrection":true},
+      "userFriction":"Users should be able to fix yesterday without manually editing every day."
+    },
+    {
+      "id":"CLS-005","scenario":"Productivity/leisure is independent from taxonomy","input":{"category":"Gaming","productivity":"Productive"},
+      "expected":{"bothDimensionsPersist":true,"categoryUnchanged":"Gaming","productivityUnchanged":"Productive"},
+      "userFriction":"The product should not force users into simplistic category meanings."
+    },
+    {
+      "id":"CLS-006","scenario":"Unknown application","input":{"observedExecutable":"mystery.exe"},
+      "expected":{"category":"Other","confidenceExplicit":true,"rawIdentityPreserved":true},
+      "userFriction":"Unknown should look like an honest fallback, not a broken tracker."
+    },
+    {
+      "id":"AN-001","scenario":"Daily aggregate from intervals","input":{"intervals":[["09:00","10:00","AppA"],["11:00","11:30","AppA"],["11:30","12:00","AppB"]]},
+      "expected":{"AppAForegroundMs":5400000,"AppBForegroundMs":1800000,"totalTrackedMs":7200000},
+      "userFriction":"Dashboard totals must agree with timeline totals."
+    },
+    {
+      "id":"AN-002","scenario":"Previous-period comparison","input":{"currentMs":7200000,"previousMs":5400000},
+      "expected":{"deltaMs":1800000,"deltaPercent":33.3333333333},
+      "userFriction":"Comparisons should be mathematically consistent and clearly show the covered periods."
+    },
+    {
+      "id":"AN-003","scenario":"Gap excluded from usage total","input":{"foreground":[["09:00","10:00"]],"gap":[["10:00","11:00"]],"foreground2":[["11:00","12:00"]]},
+      "expected":{"trackedUsageMs":7200000,"gapMs":3600000,"dayDurationNotReportedAsUsage":true},
+      "userFriction":"A missing hour should not silently appear as zero activity or extra app time."
+    },
+    {
+      "id":"AN-004","scenario":"Timeline semantic zoom","input":{"sameHistory":true,"requestedGrains":["month","week","day","hour","15minute","minute","event"]},
+      "expected":{"underlyingHistoryConsistent":true,"detailIncreasesByGrain":true,"noDoubleCountingAcrossZoom":true},
+      "userFriction":"Zooming should feel like inspecting the same history, not jumping between unrelated datasets."
+    },
+    {
+      "id":"AN-005","scenario":"Long session statistics","input":{"sessionDurationsMs":[3600000,1800000,600000]},
+      "expected":{"longestMs":3600000,"averageMs":1600000,"sessionCount":3},
+      "userFriction":"Session summaries should use the same boundaries visible in the timeline."
+    },
+    {
+      "id":"AN-006","scenario":"Switch analytics distinguish app versus window switch","input":{"switches":[{"from":"AppA/W1","to":"AppA/W2"},{"from":"AppA/W2","to":"AppB/W1"}]},
+      "expected":{"windowSwitches":2,"applicationSwitches":1},
+      "userFriction":"Users should not be told they switched apps when they only changed windows."
+    },
+    {
+      "id":"AN-007","scenario":"Report carries data-quality caveat","input":{"trackedMs":10800000,"gapMs":1800000},
+      "expected":{"reportShowsGap":true,"reportClaimsCompleteDay":false},
+      "userFriction":"Reports must disclose incomplete coverage before users share or rely on them."
+    }
+  ]
+}
