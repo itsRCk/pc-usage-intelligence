@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pcusage://schemas/sync-mutations.v1.json",
+  "title": "Sync Mutation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "mutationId", "datasetId", "deviceId", "mutationType", "logicalGeneration", "createdAtUtc"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "mutationId": { "$ref": "#/$defs/id" },
+    "datasetId": { "$ref": "#/$defs/id" },
+    "deviceId": { "$ref": "#/$defs/id" },
+    "mutationType": { "enum": ["Append", "Upsert", "DeleteEntity", "DeleteRange", "DeleteAll", "DeviceEnroll", "DeviceRevoke", "ConfigChange", "ManifestPublish"] },
+    "logicalGeneration": { "type": "integer", "minimum": 0 },
+    "createdAtUtc": { "type": "string", "format": "date-time" },
+    "entityType": { "type": ["string", "null"], "maxLength": 128 },
+    "entityId": { "type": ["string", "null"], "maxLength": 128 },
+    "rangeStartUtc": { "type": ["string", "null"], "format": "date-time" },
+    "rangeEndUtc": { "type": ["string", "null"], "format": "date-time" },
+    "payloadObjectId": { "type": ["string", "null"], "maxLength": 128 },
+    "tombstoneId": { "type": ["string", "null"], "maxLength": 128 },
+    "baseGeneration": { "type": ["integer", "null"], "minimum": 0 },
+    "metadata": { "type": ["object", "null"] }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9._:-]+$" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "mutationType": { "const": "DeleteRange" } } },
+      "then": {
+        "required": ["rangeStartUtc", "rangeEndUtc", "tombstoneId"]
+      }
+    },
+    {
+      "if": { "properties": { "mutationType": { "const": "DeleteEntity" } } },
+      "then": {
+        "required": ["entityType", "entityId", "tombstoneId"]
+      }
+    },
+    {
+      "if": { "properties": { "mutationType": { "const": "DeleteAll" } } },
+      "then": {
+        "required": ["tombstoneId"]
+      }
+    }
+  ]
+}
