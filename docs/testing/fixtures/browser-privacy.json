@@ -1,0 +1,98 @@
+{
+  "fixtureVersion": 1,
+  "purpose": "Browser acquisition, correlation, privacy, permissions, and degradation",
+  "cases": [
+    {
+      "id":"BR-001","scenario":"Normal Chrome tab navigation","events":[
+        {"t":"10:00:00","type":"windowForeground","browser":"Chrome","window":"W1"},
+        {"t":"10:00:01","type":"activeTab","tab":"T1","domain":"github.com","title":"Repo A","private":"Public"},
+        {"t":"10:05:00","type":"navigate","tab":"T1","domain":"docs.google.com","title":"Doc","private":"Public"}
+      ],
+      "expected":{"applicationTracked":true,"domains":["github.com","docs.google.com"],"titleHistoryAllowed":true},
+      "userFriction":"Domain and page detail should update naturally without duplicate browser sessions."
+    },
+    {
+      "id":"BR-002","scenario":"Same domain across multiple tabs","events":[
+        {"t":"11:00:00","type":"activeTab","window":"W1","tab":"T1","domain":"youtube.com"},
+        {"t":"11:02:00","type":"activeTab","window":"W1","tab":"T2","domain":"youtube.com"}
+      ],
+      "expected":{"domainAggregatesAsOneEntity":true,"tabsRemainDistinct":true},
+      "userFriction":"Users should see one useful YouTube total rather than fragmented duplicate website entries."
+    },
+    {
+      "id":"BR-003","scenario":"Private/incognito tab","events":[
+        {"t":"12:00:00","type":"windowForeground","browser":"Chrome","window":"PW1"},
+        {"t":"12:00:01","type":"activeTab","tab":"PT1","domain":"example-sensitive.com","title":"Sensitive Title","private":"Private"}
+      ],
+      "expected":{"browserApplicationTracked":true,"domainPersisted":false,"titlePersisted":false,"privateIdentityReconstructed":false},
+      "userFriction":"The user should not discover private activity in domain/title history."
+    },
+    {
+      "id":"BR-004","scenario":"Private state unknown","events":[
+        {"t":"12:30:00","type":"activeTab","tab":"T9","domain":"possible-private.com","title":"Possible Private","private":"Unknown"}
+      ],
+      "expected":{"domainPersisted":false,"titlePersisted":false,"failClosed":true},
+      "userFriction":"A little missing detail is preferable to an unexpected privacy leak."
+    },
+    {
+      "id":"BR-005","scenario":"Extension installed but permissions denied","events":[
+        {"t":"13:00:00","type":"browserForeground","browser":"Firefox"},
+        {"t":"13:00:01","type":"extensionCapability","urlAccess":false,"titleAccess":false}
+      ],
+      "expected":{"browserAppTrackingContinues":true,"domainDetailUnavailable":true,"invasiveFallbackActivated":false},
+      "userFriction":"Users should not be forced into broader browser access merely to retain basic app tracking."
+    },
+    {
+      "id":"BR-006","scenario":"Browser bridge disconnects","events":[
+        {"t":"14:00:00","type":"browserForeground","browser":"Edge"},
+        {"t":"14:05:00","type":"bridgeDisconnected"},
+        {"t":"14:10:00","type":"browserForeground","browser":"Edge"},
+        {"t":"14:12:00","type":"bridgeReconnected"}
+      ],
+      "expected":{"browserApplicationIntervalsRemainValid":true,"browserDetailGapExplicit":true,"globalTrackerUnaffected":true},
+      "userFriction":"A browser detail gap should not look like the whole tracker stopped."
+    },
+    {
+      "id":"BR-007","scenario":"Browser restart with reused native tab ID","events":[
+        {"t":"15:00:00","type":"tabCreated","nativeTabId":"7","browserSession":"S1"},
+        {"t":"15:30:00","type":"browserRestart"},
+        {"t":"15:31:00","type":"tabCreated","nativeTabId":"7","browserSession":"S2"}
+      ],
+      "expected":{"durableTabInstances":2,"mergedAcrossSessions":false},
+      "userFriction":"Reopening a browser must not extend an old tab's history."
+    },
+    {
+      "id":"BR-008","scenario":"Title collection disabled while domain remains enabled","events":[
+        {"t":"16:00:00","type":"settings","pageTitles":false,"domains":true},
+        {"t":"16:01:00","type":"activeTab","domain":"github.com","title":"Repo secret","private":"Public"}
+      ],
+      "expected":{"domainPersisted":true,"titlePersisted":false},
+      "userFriction":"The privacy control should be independently useful and predictable."
+    },
+    {
+      "id":"BR-009","scenario":"Title changes on same domain","events":[
+        {"t":"17:00:00","type":"title","domain":"github.com","title":"Repo A"},
+        {"t":"17:03:00","type":"title","domain":"github.com","title":"Repo B"}
+      ],
+      "expected":{"domainIdentityStable":true,"titleObservationsDistinct":true,"applicationSwitchCount":0},
+      "userFriction":"Rich page detail must not create noise in higher-level app/domain analytics."
+    },
+    {
+      "id":"BR-010","scenario":"Window correlation by native identity, not title","events":[
+        {"t":"18:00:00","type":"windowsWindow","hwnd":"100","title":"GitHub"},
+        {"t":"18:00:01","type":"browserWindow","nativeWindow":"100","title":"GitHub"},
+        {"t":"18:00:02","type":"otherWindow","hwnd":"200","title":"GitHub"}
+      ],
+      "expected":{"browserWindowCorrelation":"100","titleOnlyMatchRejected":true},
+      "userFriction":"Two windows with identical titles must never cause browser time to be assigned to the wrong tab."
+    },
+    {
+      "id":"BR-011","scenario":"Arc requires independent capability validation","events":[
+        {"t":"19:00:00","type":"browserDetected","browser":"Arc"},
+        {"t":"19:00:01","type":"adapterCapabilities","browser":"Arc","extensionApiCompatible":false}
+      ],
+      "expected":{"browserApplicationTrackingContinues":true,"unsupportedDetailExplicit":true,"ChromeAssumptionsUsedWithoutValidation":false},
+      "userFriction":"Arc users should see honest capability status rather than silently broken website tracking."
+    }
+  ]
+}
